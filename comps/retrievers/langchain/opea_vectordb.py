@@ -90,8 +90,8 @@ class opea_Retrieval:
     async def retrieval(self, search_type: str, embedding: list,  top_k: int = 3) -> list[Document]:
         """Insert a vector into the underlying database."""
         search_res = []
-        import pdb
-        pdb.set_trace()
+        #import pdb
+        #pdb.set_trace()
         search_res = await self.vector_db.asimilarity_search_by_vector(embedding=embedding, top_k=top_k)
         print("search_res: ", search_res)
         return search_res 
@@ -103,8 +103,6 @@ from config import EMBED_MODEL, PG_INDEX_NAME, PG_CONNECTION_STRING, PG_PORT, HU
 
 class PGvector_OpeaVectorDatabase(OpeaVectorDatabase):
     def __init__(self):
-        import pdb
-        pdb.set_trace()
         if tei_embedding_endpoint:
             # create embeddings using TEI endpoint service
             embeddings = HuggingFaceHubEmbeddings(model=tei_embedding_endpoint)
@@ -139,8 +137,6 @@ class PGvector_OpeaVectorDatabase(OpeaVectorDatabase):
 from langchain_huggingface import HuggingFaceEndpointEmbeddings # Redis embedding
 class Redis_OpeaVectorDatabase(OpeaVectorDatabase):
     def __init__(self):
-        import pdb
-        pdb.set_trace()
         if tei_embedding_endpoint:
             # create embeddings using TEI endpoint service
             #embeddings = HuggingFaceHubEmbeddings(model=tei_embedding_endpoint)
@@ -182,12 +178,14 @@ class Redis_OpeaVectorDatabase(OpeaVectorDatabase):
         else:
             return False
 
-#redis_db = Redis_OpeaVectorDatabase()
-pg_db = PGvector_OpeaVectorDatabase()
-#retriever = opea_Retrieval(vector_db=redis_db)
-retriever2 = opea_Retrieval(vector_db=pg_db)
-import random
-vec_embedding = [random.uniform(-1, 1) for _ in range(768)]
-print(vec_embedding)
+if (False):
+    redis_db = Redis_OpeaVectorDatabase()
+    pg_db = PGvector_OpeaVectorDatabase()
+    retriever = opea_Retrieval(vector_db=redis_db)
+    retriever2 = opea_Retrieval(vector_db=pg_db)
+    import random
+    vec_embedding = [random.uniform(-1, 1) for _ in range(768)]
+    print(vec_embedding)
 
-asyncio.run(retriever2.retrieval("similarity", vec_embedding)) 
+    asyncio.run(retriever2.retrieval("similarity", vec_embedding)) 
+

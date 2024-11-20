@@ -5,15 +5,7 @@ import os
 import time
 from typing import Union
 
-from langchain_community.embeddings import HuggingFaceBgeEmbeddings
-#from langchain_community.vectorstores import Redis
-from langchain_community.vectorstores import Redis, PGVector
-from langchain_huggingface import HuggingFaceEndpointEmbeddings # Redis embedding
-
-from langchain_community.embeddings import HuggingFaceBgeEmbeddings, HuggingFaceHubEmbeddings # Pgvector embedding
-
-from redis_config import EMBED_MODEL, INDEX_NAME, REDIS_URL
-from config import EMBED_MODEL, PG_INDEX_NAME, PG_CONNECTION_STRING, PG_PORT, HUG_API_TOKEN 
+from opea_vectordb import OpeaVectorDatabase, PGvector_OpeaVectorDatabase, Redis_OpeaVectorDatabase, opea_Retrieval    
 
 from comps import (
     CustomLogger,
@@ -37,14 +29,21 @@ logger = CustomLogger("retriever_redis")
 logflag = os.getenv("LOGFLAG", False)
 
 tei_embedding_endpoint = os.getenv("TEI_EMBEDDING_ENDPOINT")
+db_type = os.getenv("DB_TYPE", "redis")
 
 @register_microservice(
     name="opea_service@retriever_redis",
     service_type=ServiceType.RETRIEVER,
     endpoint="/v1/retrieval",
     host="0.0.0.0",
-    port=7008,
+    port=7000,
 )
+
+# Opea Retrieval interact with OpeaVectorDatabase
+#class OpeaRetrieval:
+#    def __init__(self, vector_db: OpeaVectorDatabase):
+#        self.vector_db = vector_db
+
 @register_statistics(names=["opea_service@retriever_redis"])
 async def retrieve(
     input: Union[EmbedDoc, RetrievalRequest, ChatCompletionRequest]
@@ -63,7 +62,7 @@ async def retrieve(
             # for RetrievalRequest, ChatCompletionRequest
             query = input.input
         # if the Redis index has data, perform the search
-        search_res = await vector_db.asimilarity_search_by_vector(embedding=input.embedding, k=input.k)
+        search_res = await retriever.vector_db.asimilarity_search_by_vector(embedding=input.embedding, k=input.k)
         '''
         if input.search_type == "similarity":
             search_res = await vector_db.asimilarity_search_by_vector(embedding=input.embedding, k=input.k)
@@ -107,24 +106,15 @@ async def retrieve(
         logger.info(result)
     return result
 
-
 if __name__ == "__main__":
     # Create vectorstore
-    if tei_embedding_endpoint:
-        # create embeddings using TEI endpoint service
-        #embeddings = HuggingFaceEndpointEmbeddings(model=tei_embedding_endpoint)
-
-        embeddings = HuggingFaceHubEmbeddings(model=tei_embedding_endpoint)
-        #embeddings = HuggingFaceHubEmbeddings(model=tei_embedding_endpoint, huggingfacehub_api_token=HUG_API_TOKEN)
+    if (db_type == "REDIS"):
+        opea_db = Redis_OpeaVectorDatabase()
+    elif (db_type == "PGVECTOR"):
+        opea_db = PGvector_OpeaVectorDatabase()
     else:
-        # create embeddings using local embedding model
-        embeddings = HuggingFaceBgeEmbeddings(model_name=EMBED_MODEL)
-
-    #vector_db = Redis(embedding=embeddings, index_name=INDEX_NAME, redis_url=REDIS_URL)
-    vector_db = PGVector(
-        embedding_function=embeddings,
-        collection_name=PG_INDEX_NAME,
-        connection_string=PG_CONNECTION_STRING,
-    )
-
+        print("NOT support db:", db_type)
+        exit()
+    #retriever = opea_Retrieval(vector_db=pg_db)
+    retriever = opea_Retrieval(vector_db=opea_db)
     opea_microservices["opea_service@retriever_redis"].start()
