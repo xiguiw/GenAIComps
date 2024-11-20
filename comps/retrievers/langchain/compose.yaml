@@ -1,0 +1,36 @@
+# Copyright (C) 2024 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
+version: "3.8"
+
+services:
+  tei_xeon_service:
+    image: ghcr.io/huggingface/text-embeddings-inference:cpu-1.5
+    container_name: tei-xeon-server
+    ports:
+      - "6006:80"
+    volumes:
+      - "./data:/data"
+    shm_size: 1g
+    environment:
+      no_proxy: ${no_proxy}
+      http_proxy: ${http_proxy}
+      https_proxy: ${https_proxy}
+    command: --model-id ${EMBEDDING_MODEL_ID}
+
+  vectorstore-postgres:
+    image: pgvector/pgvector:0.7.0-pg16
+    container_name: pgvector-db
+    ports:
+      - "5432:5432"
+    ipc: host
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER} 
+      POSTGRES_HOST_AUTH_METHOD: trust
+      POSTGRES_DB: ${POSTGRES_DB} 
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD} 
+      volume: "./init.sql:/docker-entrypoint-initdb.d/init.sql"
+
+networks:
+  default:
+    driver: bridge

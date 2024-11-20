@@ -7,9 +7,13 @@ from typing import Union
 
 from langchain_community.embeddings import HuggingFaceBgeEmbeddings
 #from langchain_community.vectorstores import Redis
-from langchain_community.vectorstores import Redis, Milvus
-from langchain_huggingface import HuggingFaceEndpointEmbeddings
+from langchain_community.vectorstores import Redis, PGVector
+from langchain_huggingface import HuggingFaceEndpointEmbeddings # Redis embedding
+
+from langchain_community.embeddings import HuggingFaceBgeEmbeddings, HuggingFaceHubEmbeddings # Pgvector embedding
+
 from redis_config import EMBED_MODEL, INDEX_NAME, REDIS_URL
+from config import EMBED_MODEL, PG_INDEX_NAME, PG_CONNECTION_STRING, PG_PORT, HUG_API_TOKEN 
 
 from comps import (
     CustomLogger,
@@ -39,7 +43,7 @@ tei_embedding_endpoint = os.getenv("TEI_EMBEDDING_ENDPOINT")
     service_type=ServiceType.RETRIEVER,
     endpoint="/v1/retrieval",
     host="0.0.0.0",
-    port=7778,
+    port=7008,
 )
 @register_statistics(names=["opea_service@retriever_redis"])
 async def retrieve(
@@ -49,15 +53,18 @@ async def retrieve(
         logger.info(input)
     start = time.time()
     # check if the Redis index has data
-    if vector_db.client.keys() == []:
-        search_res = []
-    else:
+    #if vector_db.client.keys() == []:
+    #    search_res = []
+    #else:
+    if (True):
         if isinstance(input, EmbedDoc):
             query = input.text
         else:
             # for RetrievalRequest, ChatCompletionRequest
             query = input.input
         # if the Redis index has data, perform the search
+        search_res = await vector_db.asimilarity_search_by_vector(embedding=input.embedding, k=input.k)
+        '''
         if input.search_type == "similarity":
             search_res = await vector_db.asimilarity_search_by_vector(embedding=input.embedding, k=input.k)
         elif input.search_type == "similarity_distance_threshold":
@@ -77,6 +84,7 @@ async def retrieve(
             )
         else:
             raise ValueError(f"{input.search_type} not valid")
+        '''
 
     # return different response format
     retrieved_docs = []
@@ -104,17 +112,19 @@ if __name__ == "__main__":
     # Create vectorstore
     if tei_embedding_endpoint:
         # create embeddings using TEI endpoint service
-        embeddings = HuggingFaceEndpointEmbeddings(model=tei_embedding_endpoint)
+        #embeddings = HuggingFaceEndpointEmbeddings(model=tei_embedding_endpoint)
+
+        embeddings = HuggingFaceHubEmbeddings(model=tei_embedding_endpoint)
+        #embeddings = HuggingFaceHubEmbeddings(model=tei_embedding_endpoint, huggingfacehub_api_token=HUG_API_TOKEN)
     else:
         # create embeddings using local embedding model
         embeddings = HuggingFaceBgeEmbeddings(model_name=EMBED_MODEL)
 
-    vector_db = Redis(embedding=embeddings, index_name=INDEX_NAME, redis_url=REDIS_URL)
-    url = "http://" + str(MILVUS_HOST) + ":" + str(MILVUS_PORT)
-    vector_db = Milvus(
-        embeddings,
-        connection_args={"host": MILVUS_HOST, "port": MILVUS_PORT, "uri": url},
-        collection_name=COLLECTION_NAME,
+    #vector_db = Redis(embedding=embeddings, index_name=INDEX_NAME, redis_url=REDIS_URL)
+    vector_db = PGVector(
+        embedding_function=embeddings,
+        collection_name=PG_INDEX_NAME,
+        connection_string=PG_CONNECTION_STRING,
     )
 
     opea_microservices["opea_service@retriever_redis"].start()
