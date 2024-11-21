@@ -36,6 +36,8 @@ if (db_type == "REDIS"):
     from redis_db.opea_vectordb_redis import Redis_OpeaVectorDatabase, opea_Retrieval
 elif (db_type == "PGVECTOR"):
     from pgvector_db.opea_vectordb_pgvector import PGvector_OpeaVectorDatabase, opea_Retrieval
+elif (db_type == "MILVUS"):
+    from milvus_db.opea_vectordb_milvus import Milvus_OpeaVectorDatabase, opea_Retrieval
 else:
     print("NOT support db:", db_type)
     exit()
@@ -123,6 +125,8 @@ if __name__ == "__main__":
         opea_db = Redis_OpeaVectorDatabase()
     elif (db_type == "PGVECTOR"):
         opea_db = PGvector_OpeaVectorDatabase()
+    elif (db_type == "MILVUS"):
+        opea_db = Milvus_OpeaVectorDatabase()
     else:
         print("NOT support db:", db_type)
         exit()

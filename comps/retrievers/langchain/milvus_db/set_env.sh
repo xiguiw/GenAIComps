@@ -5,5 +5,5 @@ export EMBEDDING_MODEL_ID="BAAI/bge-base-en-v1.5"
 export MILVUS_HOST=${host_ip}
 export MILVUS_PORT=19530
 # Optional COLLECTION_NAME
-export COLLECTION_NAME=${your_collection_name}
+#export COLLECTION_NAME=${your_collection_name}
 
