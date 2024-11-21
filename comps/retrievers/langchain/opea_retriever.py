@@ -5,7 +5,8 @@ import os
 import time
 from typing import Union
 
-from opea_vectordb import OpeaVectorDatabase, PGvector_OpeaVectorDatabase, Redis_OpeaVectorDatabase, opea_Retrieval    
+#from opea_vectordb import PGvector_OpeaVectorDatabase, Redis_OpeaVectorDatabase, opea_Retrieval    
+#from opea_vectordb_interface
 
 from comps import (
     CustomLogger,
@@ -30,6 +31,14 @@ logflag = os.getenv("LOGFLAG", False)
 
 tei_embedding_endpoint = os.getenv("TEI_EMBEDDING_ENDPOINT")
 db_type = os.getenv("DB_TYPE", "redis")
+
+if (db_type == "REDIS"):
+    from redis_db.opea_vectordb_redis import Redis_OpeaVectorDatabase, opea_Retrieval
+elif (db_type == "PGVECTOR"):
+    from pgvector_db.opea_vectordb_pgvector import PGvector_OpeaVectorDatabase, opea_Retrieval
+else:
+    print("NOT support db:", db_type)
+    exit()
 
 @register_microservice(
     name="opea_service@retriever_redis",
@@ -62,7 +71,9 @@ async def retrieve(
             # for RetrievalRequest, ChatCompletionRequest
             query = input.input
         # if the Redis index has data, perform the search
-        search_res = await retriever.vector_db.asimilarity_search_by_vector(embedding=input.embedding, k=input.k)
+        search_res = await retriever.vector_db.asimilarity_search_by_vector(embedding=input.embedding, k=3)
+        print(input.embedding)
+        print("search_res: ", search_res)
         '''
         if input.search_type == "similarity":
             search_res = await vector_db.asimilarity_search_by_vector(embedding=input.embedding, k=input.k)
