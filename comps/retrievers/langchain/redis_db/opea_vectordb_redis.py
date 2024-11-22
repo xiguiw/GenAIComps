@@ -8,7 +8,7 @@ from os import PathLike
 from langchain_core.documents.base import Document
 from langchain_core.embeddings.embeddings import Embeddings
 
-from .redis_config import EMBED_MODEL, INDEX_NAME, REDIS_URL
+from retrievers.langchain.redis_db.redis_config import EMBED_MODEL, INDEX_NAME, REDIS_URL
 #from ..db_interface.opea_vectordb_interface import OpeaVectorDatabase
 from retrievers.langchain.db_interface.opea_vectordb_interface import OpeaVectorDatabase
 

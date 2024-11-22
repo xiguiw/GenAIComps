@@ -53,7 +53,7 @@ class OpeaVectorDatabase(ABC):
     """
 
     @abstractmethod
-    async def asimilarity_search_by_vector(self, embedding: list[float], k: int = 4, **kwargs: Any) -> list[Document]:
+    async def asimilarity_search_by_vector(self, embedding: list[float], k: int, **kwargs: Any) -> list[Document]:
         """Search for the top-k closest vectors to the query vector."""
         pass
 

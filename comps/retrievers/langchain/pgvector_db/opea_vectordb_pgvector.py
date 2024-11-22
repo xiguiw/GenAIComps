@@ -12,6 +12,11 @@ from langchain_community.embeddings import HuggingFaceHubEmbeddings # Pgvector e
 #from opea_vectordb_interface import OpeaVectorDatabase
 from retrievers.langchain.db_interface.opea_vectordb_interface import OpeaVectorDatabase
 
+from langchain_community.vectorstores import PGVector
+from langchain_community.embeddings import HuggingFaceBgeEmbeddings
+
+from retrievers.langchain.pgvector_db.config import EMBED_MODEL, PG_INDEX_NAME, PG_CONNECTION_STRING, PG_PORT, HUG_API_TOKEN
+
 tei_embedding_endpoint = os.getenv("TEI_EMBEDDING_ENDPOINT")
 
 # Opea Retrieval interact with OpeaVectorDatabase
@@ -28,10 +33,6 @@ class opea_Retrieval:
         print("search_res: ", search_res)
         return search_res 
 
-from langchain_community.vectorstores import PGVector
-from langchain_community.embeddings import HuggingFaceBgeEmbeddings
-
-from .config import EMBED_MODEL, PG_INDEX_NAME, PG_CONNECTION_STRING, PG_PORT, HUG_API_TOKEN
 
 class PGvector_OpeaVectorDatabase(OpeaVectorDatabase):
     def __init__(self):

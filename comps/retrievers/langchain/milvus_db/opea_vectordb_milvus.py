@@ -8,7 +8,7 @@ from os import PathLike
 from langchain_core.documents.base import Document
 from langchain_core.embeddings.embeddings import Embeddings
 
-from .milvus_config import (
+from retrievers.langchain.milvus_db.milvus_config import (
     COLLECTION_NAME,
     LOCAL_EMBEDDING_MODEL,
     MILVUS_HOST,
@@ -24,8 +24,6 @@ from retrievers.langchain.db_interface.opea_vectordb_interface import OpeaVector
 from langchain_community.embeddings import HuggingFaceBgeEmbeddings, HuggingFaceHubEmbeddings
 from langchain_milvus.vectorstores import Milvus
 
-tei_embedding_endpoint = os.getenv("TEI_EMBEDDING_ENDPOINT")
-
 class Milvus_OpeaVectorDatabase(OpeaVectorDatabase):
     def __init__(self):
         if TEI_EMBEDDING_ENDPOINT:
@@ -36,18 +34,21 @@ class Milvus_OpeaVectorDatabase(OpeaVectorDatabase):
             # create embeddings using local embedding model
             embeddings = HuggingFaceBgeEmbeddings(model_name=LOCAL_EMBEDDING_MODEL)
 
-        url = "http://" + str(MILVUS_HOST) + ":" + str(MILVUS_PORT)
-        self.vector_db = Milvus(
-            embeddings,
-            connection_args={"host": MILVUS_HOST, "port": MILVUS_PORT, "uri": url},
-            collection_name=COLLECTION_NAME,
-        )
+        self.embeddings = embeddings
+        uri = "http://" + str(MILVUS_HOST) + ":" + str(MILVUS_PORT)
+        self.uri = uri
+        self.CollectionName = COLLECTION_NAME
 
         return 
 
     async def asimilarity_search_by_vector(self, embedding: list[float], k: int = 4, **kwargs: Any) -> list[Document]:
-       search_res = await self.vector_db.asimilarity_search_by_vector(embedding, k=k)
-       return search_res 
+        self.vector_db = Milvus(
+            self.embeddings,
+            connection_args={"host": MILVUS_HOST, "port": MILVUS_PORT, "uri": self.uri},
+            collection_name=self.CollectionName,
+        )
+        search_res = await self.vector_db.asimilarity_search_by_vector(embedding, k=k)
+        return search_res
 
     def is_db_empty(self) -> bool:
         if (self.vector_db.client.keys() == []):
