@@ -11,6 +11,25 @@ tei_embedding_endpoint = os.getenv("TEI_EMBEDDING_ENDPOINT")
 
 # Opea Vectore Database Interface. Any Vector DB to be integrated into OPEA, it needs to derivate the class and implements these interfaces
 class OpeaVectorDatabase(ABC):
+    @abstractmethod
+    async def asimilarity_search_by_vector(self, embedding: list[float], k: int, **kwargs: Any) -> list[Document]:
+        """Search for the top-k closest vectors to the query vector."""
+        pass
+
+    @abstractmethod
+    def is_db_empty(self) -> bool:
+        """Insert a vector into the database."""
+        pass
+    '''
+    @abstractmethod
+    async def asimilarity_search_with_relevance_scores(query: str, k: int = 4, **kwargs: Any) -> list[tuple[Document, float]]
+        pass
+
+    @abstractmethod
+    async def amax_marginal_relevance_search(query: str, k: int = 4, fetch_k: int = 20, lambda_mult: float = 0.5, **kwargs: Any) -> list[Document]
+        pass
+    '''
+
     """
     Create a vectorstore from a list of texts.
     This is a user-friendly interface that:
@@ -51,22 +70,3 @@ class OpeaVectorDatabase(ABC):
     def ingest_text_and_create_vector_store(texts: list[str], embedding: Embeddings, metadatas: list[dict] | None = None, index_name: str | None = None, index_schema: Dict[str, list[Dict[str, str]]] | str | PathLike | None = None, vector_schema: Dict[str, str | int] | None = None, vector_url: str | None = None, **kwargs: Any) -> OpeaVectorDatabase:
         pass
     """
-
-    @abstractmethod
-    async def asimilarity_search_by_vector(self, embedding: list[float], k: int, **kwargs: Any) -> list[Document]:
-        """Search for the top-k closest vectors to the query vector."""
-        pass
-
-    @abstractmethod
-    def is_db_empty(self) -> bool:
-        """Insert a vector into the database."""
-        pass
-    '''
-    @abstractmethod
-    async def asimilarity_search_with_relevance_scores(query: str, k: int = 4, **kwargs: Any) → list[tuple[Document, float]]
-        pass
-
-    @abstractmethod
-    async def amax_marginal_relevance_search(query: str, k: int = 4, fetch_k: int = 20, lambda_mult: float = 0.5, **kwargs: Any) → list[Document]
-        pass
-    '''

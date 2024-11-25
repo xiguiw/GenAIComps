@@ -51,16 +51,6 @@ class Redis_OpeaVectorDatabase(OpeaVectorDatabase):
         )
         print(f"Processed batch text")
 
-    async def asimilarity_search_by_vector(self, embedding: list[float], k: int = 4, **kwargs: Any) -> list[Document]:
-       search_res = await self.vector_db.asimilarity_search_by_vector(embedding, k=k)
-       return search_res 
-
-    def is_db_empty(self) -> bool:
-        if (self.vector_db.client.keys() == []):
-            return True
-        else:
-            return False
-
 # Opea Retrieval interact with OpeaVectorDatabase
 class opea_Retrieval:
     def __init__(self, vector_db: OpeaVectorDatabase):

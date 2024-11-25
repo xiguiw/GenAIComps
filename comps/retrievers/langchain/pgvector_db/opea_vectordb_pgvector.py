@@ -50,6 +50,14 @@ class PGvector_OpeaVectorDatabase(OpeaVectorDatabase):
             connection_string=PG_CONNECTION_STRING,)
         return 
 
+    async def asimilarity_search_by_vector(self, embedding: list[float], k: int = 4, **kwargs: Any) -> list[Document]:
+       search_res = await self.vector_db.asimilarity_search_by_vector(embedding, k=k)
+       #search_res = await self.vector_db.asimilarity_search_by_vector(embedding=input.embedding)
+       return search_res 
+
+    def is_db_empty(self) -> bool:
+        pass
+
     def ingest_text_and_create_vector_store(texts: list[str], embedding: Embeddings, metadatas: list[dict] | None = None, index_name: str | None = None, index_schema: Dict[str, list[Dict[str, str]]] | str | PathLike | None = None, vector_schema: Dict[str, str | int] | None = None, **kwargs: Any) -> OpeaVectorDatabase:
         _ = self.vector_db.from_texts(
             texts=texts,
@@ -58,14 +66,6 @@ class PGvector_OpeaVectorDatabase(OpeaVectorDatabase):
             vector_url=REDIS_URL,
         )
         print(f"Processed batch text")
-
-    async def asimilarity_search_by_vector(self, embedding: list[float], k: int = 4, **kwargs: Any) -> list[Document]:
-       search_res = await self.vector_db.asimilarity_search_by_vector(embedding, k=k)
-       #search_res = await self.vector_db.asimilarity_search_by_vector(embedding=input.embedding)
-       return search_res 
-
-    def is_db_empty(self) -> bool:
-        pass
 
 if (True):
     pg_db = PGvector_OpeaVectorDatabase()
