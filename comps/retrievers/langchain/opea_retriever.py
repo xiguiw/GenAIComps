@@ -26,7 +26,7 @@ from comps.cores.proto.api_protocol import (
     RetrievalResponseData,
 )
 
-logger = CustomLogger("retriever_redis")
+logger = CustomLogger("retriever_opeadb")
 logflag = os.getenv("LOGFLAG", False)
 
 tei_embedding_endpoint = os.getenv("TEI_EMBEDDING_ENDPOINT")
@@ -43,39 +43,29 @@ else:
     exit()
 
 @register_microservice(
-    name="opea_service@retriever_redis",
+    name="opea_service@retriever_opeadb",
     service_type=ServiceType.RETRIEVER,
     endpoint="/v1/retrieval",
     host="0.0.0.0",
     port=7000,
 )
-
-# Opea Retrieval interact with OpeaVectorDatabase
-#class OpeaRetrieval:
-#    def __init__(self, vector_db: OpeaVectorDatabase):
-#        self.vector_db = vector_db
-
-@register_statistics(names=["opea_service@retriever_redis"])
+@register_statistics(names=["opea_service@retriever_opeadb"])
 async def retrieve(
     input: Union[EmbedDoc, RetrievalRequest, ChatCompletionRequest]
 ) -> Union[SearchedDoc, RetrievalResponse, ChatCompletionRequest]:
     if logflag:
         logger.info(input)
     start = time.time()
-    # check if the Redis index has data
-    #if vector_db.client.keys() == []:
-    #    search_res = []
-    #else:
-    if (True):
-        if isinstance(input, EmbedDoc):
-            query = input.text
-        else:
-            # for RetrievalRequest, ChatCompletionRequest
-            query = input.input
-        # if the Redis index has data, perform the search
-        search_res = await retriever.vector_db.asimilarity_search_by_vector(embedding=input.embedding, k=3)
-        print(input.embedding)
-        print("search_res: ", search_res)
+
+    if isinstance(input, EmbedDoc):
+        query = input.text
+    else:
+        # for RetrievalRequest, ChatCompletionRequest
+        query = input.input
+     # if the Redis index has data, perform the search
+     search_res = await retriever.vector_db.asimilarity_search_by_vector(embedding=input.embedding, k=3)
+     print(input.embedding)
+     print("search_res: ", search_res)
         '''
         if input.search_type == "similarity":
             search_res = await vector_db.asimilarity_search_by_vector(embedding=input.embedding, k=input.k)
@@ -114,7 +104,7 @@ async def retrieve(
             input.documents = [doc.text for doc in retrieved_docs]
             result = input
 
-    statistics_dict["opea_service@retriever_redis"].append_latency(time.time() - start, None)
+    statistics_dict["opea_service@retriever_opeadb"].append_latency(time.time() - start, None)
     if logflag:
         logger.info(result)
     return result
@@ -132,4 +122,4 @@ if __name__ == "__main__":
         exit()
     #retriever = opea_Retrieval(vector_db=pg_db)
     retriever = opea_Retrieval(vector_db=opea_db)
-    opea_microservices["opea_service@retriever_redis"].start()
+    opea_microservices["opea_service@retriever_opeadb"].start()
